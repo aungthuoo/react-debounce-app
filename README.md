@@ -1,70 +1,165 @@
-# Getting Started with Create React App
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+# Debounce with React.js search example with Github repo 
+__Debouncing__ is a strategy used to improve the performance of a feature by controlling the time at which a function should be executed.
 
-## Available Scripts
+__Simple words__:- It delays the execution of your code until the user stops performing a certain action for a specified amount of time. It is a practice used to improve browser performance.
 
-In the project directory, you can run:
 
-### `npm start`
+Debouncing is a technique used to limit the rate at which a function is invoked. In the context of search functionality, debounce can be incredibly useful. When a user types into a search bar, it triggers a function to update the search results. However, if this function is invoked every time a keystroke occurs, it can lead to performance issues, especially if the search involves fetching data from a server.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+Debouncing is a technique used to limit the rate at which a function is invoked. In the context of search functionality, debounce can be incredibly useful. When a user types into a search bar, it triggers a function to update the search results. However, if this function is invoked every time a keystroke occurs, it can lead to performance issues, especially if the search involves fetching data from a server.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+Debounce works by introducing a delay before invoking the function. When the user types, the function is not immediately executed. Instead, debounce waits for a specified amount of time (the debounce period) to pass after the last keystroke before executing the function. If another keystroke occurs within this period, the timer resets. This ensures that the function is only called once the user has stopped typing, reducing unnecessary calls and improving performance.
 
-### `npm test`
+## Why Use Debounce:
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+- __Performance Optimization__: By reducing the number of function calls, debounce helps improve the performance of search functionality, especially in cases where there's network latency involved.
 
-### `npm run build`
+- __User Experience__: Debounce creates a smoother user experience by preventing rapid updates to the search results while the user is still typing. It allows the user to finish typing before displaying the results.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+- __Reduced Server Load__: Debounce helps reduce the load on the server by batching requests. Instead of sending a request for every keystroke, it waits until the user pauses typing, then sends a single request with the final search query.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## Debounce with JavaScript example 
+```js
+// debouncing
+// js file
+const inputElement = document.getElementById("fruits");
 
-### `npm run eject`
+function printInputText(text) {
+  console.log(text);
+}
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+function debounce(fx, delay) {
+  let timeoutId = null;
+  return function (text) {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => {
+      fx(text);
+    }, delay);
+  };
+}
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+const debounceFn = debounce(printInputText, 2000);
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+inputElement.addEventListener("input", (event) => {
+  debounceFn(event.target.value);
+}); 
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+```
 
-## Learn More
+```html
+<html>
+  <head>
+  </head>
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+  <body>
+    <label for="fruits">Enter your favourate fruits</label>
+    <input type="text" id="fruits" name="fruits">
+    <script src="./app.js"></script>
+  </body>
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+</html> 
+```
 
-### Code Splitting
+## Debounce with React.js example
+### App.js 
+```js
+import "./App.css";
+import SearchComponent from "./components/SearchComponent";
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+function App() {
+  return (
+    <div className="App">
+      <SearchComponent></SearchComponent>
+    </div>
+  );
+}
 
-### Analyzing the Bundle Size
+export default App;
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+```
 
-### Making a Progressive Web App
+### components/SearchComponent.jsx
+```js
+import React, { useState } from "react";
+import useDebounce from "./CustomDebounce"; // Import the custom debounce hook
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+const SearchComponent = () => {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
 
-### Advanced Configuration
+  // Fetch search results from dummy API
+  const fetchSearchResults = async (query) => {
+    try {
+      const response = await fetch(
+        `https://dummyjson.com/products/search?q=${query}`
+      );
+      const data = await response.json();
+      setSearchResults(data?.products);
+    } catch (error) {
+      console.error("Error fetching search results:", error);
+    }
+  };
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+  // Custom debounce hook to debounce the fetchSearchResults function
+  const debouncedSearch = useDebounce(fetchSearchResults, 500); // Debounce period of 500 milliseconds
 
-### Deployment
+  // Function to handle input change
+  const handleInputChange = (event) => {
+    const { value } = event.target;
+    setSearchQuery(value);
+    debouncedSearch(value); // Call the debounced search function
+  };
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+  return (
+    <div className="search-container">
+      <input
+        type="text"
+        value={searchQuery}
+        onChange={handleInputChange}
+        placeholder="Search..."
+        className="search-input"
+      />
+        {searchResults?.map((result, index) => (
+          <li key={index}>{result.title}</li>
+        ))}
+      </ul>
+    </div>
+  );
+};
 
-### `npm run build` fails to minify
+export default SearchComponent;
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+```
+
+
+### components/SearchComponent.jsx
+```js
+// Simple Custom Debounce hooks
+import { useEffect, useState } from "react";
+
+// Custom debounce hook
+const useDebounce = (callback, delay) => {
+  const [debouncedCallback, setDebouncedCallback] = useState(callback);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedCallback(() => callback);
+    }, delay);
+
+    // Cleanup function to clear the timeout
+    return () => clearTimeout(handler);
+  }, [callback, delay]);
+
+  return debouncedCallback;
+};
+
+export default useDebounce;
+
+```
+
+
+👉 The link for the full source code is here.
+
+[![Download Source code](https://gist.github.com/assets/6800568/2dbceee5-661b-40ef-881d-054bcd2cbe25)](https://github.com/aungthuoo/react-debounce-app)
